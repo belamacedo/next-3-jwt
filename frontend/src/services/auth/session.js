@@ -1,9 +1,9 @@
 import React from "react";
-import { useRouter } from "next/router";
+import { useEffect } from "react";
 import { authService } from "./authService";
+import { useRouter } from "next/router";
 
-// Decorator Pattern
-export function withSession(funcao) {
+export function withSession(func) {
   return async (ctx) => {
     try {
       const session = await authService.getSession(ctx);
@@ -14,8 +14,8 @@ export function withSession(funcao) {
           session,
         },
       };
-      return funcao(modifiedCtx);
-    } catch (err) {
+      return func(modifiedCtx);
+    } catch (error) {
       return {
         redirect: {
           permanent: false,
@@ -26,16 +26,16 @@ export function withSession(funcao) {
   };
 }
 
-export function useSession() {
-  const [session, setSesstion] = React.useState(null);
+function useSession() {
+  const [session, setSession] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     authService
       .getSession()
       .then((userSession) => {
-        setSesstion(userSession);
+        setSession(userSession);
       })
       .catch((err) => {
         setError(err);
@@ -54,12 +54,10 @@ export function useSession() {
 
 export function withSessionHOC(Component) {
   return function Wrapper(props) {
-    const router = useRouter();
     const session = useSession();
+    const router = useRouter();
 
-    if (!session.loading && session.error) {
-      router.push("/?error=401");
-    }
+    if (!session.loading && session.error) router.push("/?error=unauthorized");
 
     const modifiedProps = {
       ...props,

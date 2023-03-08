@@ -2,16 +2,19 @@
 // Ports & Adapters
 
 export async function HttpClient(fetchUrl, fetchOptions) {
-  return fetch(fetchUrl, {
+  const options = {
     ...fetchOptions,
     headers: {
       "Content-Type": "application/json",
       ...fetchOptions.headers,
     },
     body: fetchOptions.body ? JSON.stringify(fetchOptions.body) : null,
-  }).then(async (respostaDoServidor) => {
+  };
+  return fetch(fetchUrl, options).then(async (respostaDoServidor) => {
     return {
       ok: respostaDoServidor.ok,
+      status: respostaDoServidor.status,
+      statusText: respostaDoServidor.statusText,
       body: await respostaDoServidor.json(),
     };
   });
